@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Europe Countries Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="container mt-5">
+<h2>European Countries & Capitals</h2>
+<hr>
+<table class="table table-striped">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Country</th>
+        <th>Capital</th>
+        <th>Population</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="country : ${countries}">
+        <td th:text="${country.id}"></td>
+        <td th:text="${country.name}"></td>
+        <td>
+                    <span th:each="city : ${country.cities}"
+                          th:if="${city.capital}"
+                          th:text="${city.name}"></span>
+        </td>
+        <td th:text="${country.population}"></td>
+        <td>
+            <button class="btn btn-sm btn-danger" th:onclick="'deleteCountry(' + ${country.id} + ')'">Delete</button>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<script>
+    function deleteCountry(id) {
+        if(confirm('Are you sure?')) {
+            fetch('/api/countries/' + id, { method: 'DELETE' })
+                .then(() => location.reload());
+        }
+    }
+</script>
+</body>
+</html>

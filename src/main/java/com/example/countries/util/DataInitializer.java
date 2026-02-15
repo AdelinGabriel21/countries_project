@@ -27,11 +27,18 @@ public class DataInitializer implements CommandLineRunner {
                 for (Map<String, Object> data : countriesData) {
                     Country country = new Country();
                     country.setName((String) data.get("country"));
-                    // Optional: country.setPopulation((Integer) data.get("population"));
+
+                    // Convert Integer from JSON to Long for the model
+                    Object pop = data.get("population");
+                    if (pop != null) {
+                        country.setPopulation(Long.valueOf(pop.toString()));
+                    }
+
                     City capital = new City();
                     capital.setName((String) data.get("capital"));
                     capital.setCapital(true);
                     capital.setCountry(country);
+
                     country.getCities().add(capital);
                     countryRepository.save(country);
                 }
