@@ -1,14 +1,28 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="">
 <head>
     <title>Europe Countries Dashboard</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body class="container mt-5">
-<h2>European Countries & Capitals</h2>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>European Countries & Capitals</h2>
+
+    <form action="/" method="get" class="d-flex gap-2">
+        <label>
+            <input type="number" name="id" class="form-control" placeholder="Search by ID..." style="width: 200px;">
+        </label>
+        <button type="submit" class="btn btn-primary">Search</button>
+        <a href="/" class="btn btn-secondary">Reset</a>
+    </form>
+</div>
+
 <hr>
-<table class="table table-striped">
-    <thead>
+
+<table class="table table-striped table-hover align-middle">
+    <thead class="table-dark">
     <tr>
         <th>ID</th>
         <th>Country</th>
@@ -28,18 +42,98 @@
         </td>
         <td th:text="${country.population}"></td>
         <td>
-            <button class="btn btn-sm btn-danger" th:onclick="'deleteCountry(' + ${country.id} + ')'">Delete</button>
+            <button class="btn btn-sm btn-warning me-2"
+                    th:data-id="${country.id}"
+                    th:data-name="${country.name}"
+                    th:data-population="${country.population}"
+                    onclick="openEditModal(this.getAttribute('data-id'), this.getAttribute('data-name'), this.getAttribute('data-population'))">
+                Edit
+            </button>
+
+            <button class="btn btn-sm btn-danger"
+                    th:data-id="${country.id}"
+                    onclick="deleteCountry(this.getAttribute('data-id'))">
+                Delete
+            </button>
         </td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(countries)}">
+        <td colspan="5" class="text-center text-muted">No country found with that ID.</td>
     </tr>
     </tbody>
 </table>
 
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Country</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editId">
+                <div class="mb-3">
+                    <label class="form-label">Country Name</label>
+                    <label for="editName"></label><input type="text" class="form-control" id="editName">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Population</label>
+                    <label for="editPopulation"></label><input type="number" class="form-control" id="editPopulation">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="saveChanges()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+    // Function to Delete a Country
     function deleteCountry(id) {
-        if(confirm('Are you sure?')) {
+        if(confirm('Are you sure you want to delete this country?')) {
             fetch('/api/countries/' + id, { method: 'DELETE' })
-                .then(() => location.reload());
+                .then(response => {
+                    if(response.ok) {
+                        location.reload();
+                    } else {
+                        alert("Error deleting country");
+                    }
+                });
         }
+    }
+
+    // Function to Open Modal and Pre-fill Data
+    function openEditModal(id, name, population) {
+        document.getElementById('editId').value = id;
+        document.getElementById('editName').value = name;
+        document.getElementById('editPopulation').value = population;
+
+        const modal = new bootstrap.Modal(document.getElementById('editModal'));
+        modal.show();
+    }
+
+    // Function to Save Changes via API
+    function saveChanges() {
+        const id = document.getElementById('editId').value;
+        const data = {
+            name: document.getElementById('editName').value,
+            population: document.getElementById('editPopulation').value
+        };
+
+        fetch('/api/countries/' + id, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+            .then(response => {
+                if(response.ok) {
+                    location.reload(); // Refresh the page to see updates
+                } else {
+                    alert("Failed to update country.");
+                }
+            });
     }
 </script>
 </body>
